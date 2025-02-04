@@ -1,5 +1,7 @@
 import { isSamePlayer, Player } from './types/player';
-import { advantage, deuce, game, Point, PointsData, Score } from './types/score';
+import { advantage, deuce, forty, FortyData, game, incrementPoint, Point, points, PointsData, Score } from './types/score';
+import { none, Option, some, match as matchOpt } from 'fp-ts/Option';
+import { pipe } from 'fp-ts/lib/function';
 // import { none, Option, some, match as matchOpt } from 'fp-ts/Option';
 // import { pipe } from 'fp-ts/lib/function';
 
@@ -41,23 +43,45 @@ export const scoreWhenAdvantage = (
 };
 
 export const scoreWhenForty = (
-  currentForty: unknown, // TO UPDATE WHEN WE KNOW HOW TO REPRESENT FORTY
+  currentForty: FortyData,
   winner: Player
 ): Score => {
-  throw new Error('not implemented');
+  if (isSamePlayer(currentForty.player, winner)) return game(winner);
+  return pipe(
+    incrementPoint(currentForty.otherPoint),
+    matchOpt(
+      () => deuce(),
+      p => forty(currentForty.player, p) as Score
+    )
+  );
 };
 
-export const scoreWhenGame = (winner: Player): Score => {
-  throw new Error('not implemented');
-};
+export const scoreWhenGame = (winner: Player): Score => game(winner);
 
 // Exercice 2
 // Tip: You can use pipe function from fp-ts to improve readability.
 // See scoreWhenForty function above.
 export const scoreWhenPoint = (current: PointsData, winner: Player): Score => {
-  throw new Error('not implemented');
+  return pipe(
+    incrementPoint(current[winner]),
+    matchOpt(
+      () => forty(winner, current[otherPlayer(winner)]),
+      p => points(p, current[otherPlayer(winner)]) as Score
+    )
+  );
 };
 
-export const score = (currentScore: Score, winner: Player): Score => {
-  throw new Error('not implemented');
+const score = (currentScore: Score, winner: Player): Score => {
+  switch (currentScore.kind) {
+    case 'POINTS':
+      return scoreWhenPoint(currentScore.pointsData, winner);
+    case 'FORTY':
+      return scoreWhenForty(currentScore.fortyData, winner);
+    case 'ADVANTAGE':
+      return scoreWhenAdvantage(currentScore.player, winner);
+    case 'DEUCE':
+      return scoreWhenDeuce(winner);
+    case 'GAME':
+      return scoreWhenGame(winner);
+  }
 };

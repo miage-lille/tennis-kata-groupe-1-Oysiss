@@ -1,16 +1,29 @@
 import { Player } from './player';
+import { some, none, Option } from 'fp-ts/lib/Option';
 
 export type Love = {
   kind: 'LOVE';
 };
 
+export const love = (): Love => ({
+  kind: 'LOVE',
+});
+
 export type Fifteen = {
   kind: 'FIFTEEN';
 };
 
+export const fifteen = (): Fifteen => ({
+  kind: 'FIFTEEN',
+});
+
 export type Thirty = {
   kind: 'THIRTY';
 };
+
+export const thirty = (): Thirty => ({
+  kind: 'THIRTY',
+});
 
 export type Point = Love | Fifteen | Thirty;
 export type PointsData = {
@@ -33,6 +46,17 @@ export const points = (
     PLAYER_TWO: playerTwoPoints,
   },
 });
+
+export const incrementPoint = (point: Point): Option<Point> => {
+  switch (point.kind) {
+    case 'LOVE':
+      return some(fifteen());
+    case 'FIFTEEN':
+      return some(thirty());
+    case 'THIRTY':
+      return none;
+  }
+};
 
 // Exerice 0: Write all type constructors of Points, Deuce, Forty and Advantage types.
 export type Deuce = {
